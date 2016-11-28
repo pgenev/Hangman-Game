@@ -17,11 +17,11 @@ Rules
 Additional notes
 ------------
 
-A. Use provided "dictionary.dat" and choose a random word from that file. Discard all the words shorter than 4 letters.
-B. Optionally the minimum length of the word (>=4) can be provided using command line argument.
-C. Use gallows ASCII art from provided file "gallows.dat" to draw each stage of the gallows. Please note that the gallows is mirror image. You have to correct this while drawing the gallows.
-D. Store each guessed word in file "guessedwords.dat" and never play with this word again.
-E. Use dynamic linked list for the list of letters.
-e. Note some words in the dictionary are names therefore starting with capital letters but the game should not be case sensitive. So "A = a", "B = b" etc.
+A. Use provided "dictionary.dat" and choose a random word from that file. Discard all the words shorter than 4 letters. </br>
+B. Optionally the minimum length of the word (>=4) can be provided using command line argument. </br>
+C. Use gallows ASCII art from provided file "gallows.dat" to draw each stage of the gallows. Please note that the gallows is mirror image. You have to correct this while drawing the gallows. </br>
+D. Store each guessed word in file "guessedwords.dat" and never play with this word again. </br>
+E. Use dynamic linked list for the list of letters. </br>
+F. Note some words in the dictionary are names therefore starting with capital letters but the game should not be case sensitive. So "A = a", "B = b" etc.
 
 
