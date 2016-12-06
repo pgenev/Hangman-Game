@@ -1,13 +1,16 @@
 import random
 
-
 class Game:
 
 	def __init__(self):
-		self.current_word = ""
+		self.dictionary = 'dictionary.dat'
+		self.guessed_words = 'guessedwords.dat'
+		self.gallows = 'gallows.dat'
+		self.current_random_word = ""
 		self.pattern = []
 		self.used_letters = []
-		self.next_picture = 0
+		self.next_drawing = 0
+		self.new_game = False
 
 	def display_menu(self):
 
@@ -30,44 +33,42 @@ class Game:
 				continue
 			elif (choice == 1):
 				self.start_game()
-				return
+				if (self.new_game == True):
+					continue
+				break
 			elif (choice == 2):
 				break
 	
 	def load_random_word(self):
 
-		dictionary = 'dictionary.dat'
-
 		try:
-			with open(dictionary, 'r') as fp:
+			with open(self.dictionary, 'r') as fp:
 				all_words = fp.readlines()
 				all_words = [word[:-1] for word in all_words]
 				random_word = all_words[random.randint(0, len(all_words)-1)]
 				if (len(random_word) < 4):
 					while(True):
 						random_word = all_words[random.randint(0, len(all_words)-1)]
-						if ((self.check_word_in_guessed_words(random_word) == True) or (len(random_word) < 4)):
+						if ((self.word_is_in_guessed_words(random_word) == True) or (len(random_word) < 4)):
 							continue
 						break
 				return random_word
 		except IOError:
-			print ("\nCould not open the file {}\n".format(dictionary))
+			print ("\nCould not open the file {}\n".format(self.dictionary))
 			return
 
-	def check_word_in_guessed_words(self, random_word):
-
-		guessed_words = 'guessedwords.dat'
+	def word_is_in_guessed_words(self, random_word):
 
 		try:
-			with open(guessed_words, 'r') as fp:
+			with open(self.guessed_words, 'r') as fp:
 				all_words = fp.readlines()
 				all_words = [word[:-1] for word in all_words]
-				if (random_word in all_words):
-					return True
-				return False
+				if (random_word not in all_words):
+					return False
+				return True
 		except IOError:
-			print ("\nCould not open the file {}\n".format(guessed_words))
-			return
+			print ("\nCould not open the file {}\n".format(self.guessed_words))
+			return 
     
 	def start_game(self):
     		
@@ -75,52 +76,54 @@ class Game:
     		print (random_word)
     		random_word = random_word.lower()
     		word_size = len(random_word)
-    		self.current_word = random_word
+    		self.current_random_word = random_word
     		self.pattern = list(word_size*'_')
-    		
-    		#print ("random_word length {}".format(len(random_word)))
-    		#print(random_word)
-    		#print ("pattern length {}".format(len(self.pattern)))
     	
     		while(True):
     			print ("\n")
-    			self.display_word()
+    			self.display_pattern()
     			letter = input("\nEnter a letter: ")
     			letter = letter.lower()
-    			self.display_gallows()
-    			if (self.check_letter_in_word(letter) == True):
+    			if((letter in self.used_letters) or (self.letter_is_in_word(letter) == False)):
+    				self.display_gallows()
+    				if(self.next_drawing == 49):
+    					print ("\nYou lose!\n")
+    					self.repeat_game()
+    					break
+    			elif (self.letter_is_in_word(letter) == True):
     				self.replace_letter_in_word(letter)
     				self.used_letters.append(letter)
+    				if (''.join(self.pattern) == self.current_random_word):
+    					self.add_word_to_guessed_words()
+    					print ("\nYou won!\n")
+    					self.repeat_game()
+    					break
     			print ("\n")	
 
-	def check_letter_in_word(self, letter):
+	def letter_is_in_word(self, letter):
     		
-    		if letter in self.current_word:
+    		if letter in self.current_random_word:
     			return True
     		return False
 
 
 	def replace_letter_in_word(self, letter):	
 		
-		for index in range(0, len(self.current_word)):
-				if letter == self.current_word[index]:
+		for index in range(0, len(self.current_random_word)):
+				if letter == self.current_random_word[index]:
 					self.pattern[index] = letter    			
 
+	def display_pattern(self):
 
-
-	def display_word(self):
-
-			print (self.pattern)
 			print (' '.join(self.pattern))
    
 	def load_and_reverse_gallows(self):
 
-		gallows = 'gallows.dat'
-
 		try:
-			with open(gallows, 'r') as fp:
+			with open(self.gallows, 'r') as fp:
 				gallows = fp.readlines()
 				for line in gallows:
+
 					line = line[:-1]
 					mirror_line = list(line[::-1])
 
@@ -129,29 +132,36 @@ class Game:
 								mirror_line[char] = '\\'
 							elif('\\' == mirror_line[char]):
 								mirror_line[char] = '/'
-					#print ("{}".format(''.join(gallows_miror)))
 					yield ''.join(mirror_line)
 		except IOError:
-			print ("\nCould not open the file {}\n".format(gallows))
+			print ("\nCould not open the file {}\n".format(self.gallows))
 			return
    	
 	def display_gallows(self):
-   		generator = self.load_and_reverse_gallows()
-   		self.next_picture += 7
-   		print(self.next_picture)
-   		for i in range(0, self.next_picture):
-   			print (next(generator))
-   		
-   		#print (','.join(current_line))
 
+   		gallows_generator = self.load_and_reverse_gallows()
+   		self.next_drawing += 7
+   		for i in range(0, self.next_drawing):
+   			print (next(gallows_generator))
+   	
+	def add_word_to_guessed_words(self):
 
+   		try:
+   			with open(self.guessed_words, 'a') as fp:
+   				fp.write(self.current_random_word+'\n')
+   		except IOError:
+   			print("\nCould not open the file {}\n".format(self.guessedwords))
+   			return
 
-def main():
+	def repeat_game(self):
 
-	game = Game()
-	game.display_menu()
+		new_game = input("New game y/n? ")
+		new_game = new_game.lower()
+		if (new_game == 'y'):
+			self.new_game = True
+			self.current_random_word = ""
+			self.pattern = []
+			self.used_letters = []
+			self.next_drawing = 0
+		
 
-	
-
-if __name__ == "__main__":
-	main()	
